@@ -1,0 +1,8 @@
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.streamlit/secrets.toml
+rekapsaranageos-2b8c3101fab9.json
+~$*.xlsx
+*.xlsx
