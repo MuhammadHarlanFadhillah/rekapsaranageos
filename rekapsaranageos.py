@@ -276,11 +276,24 @@ def get_hull_reference(conn, spreadsheet: str, month_sheets: list[str]):
 
     hull_to_type = {}
     for hull, grp in merged.groupby("NO_HULL"):
-        types = [x for x in grp["TYPE_CAR"].tolist() if str(x).strip()]
+        # Buang nilai kosong dan pseudo-null agar pemilihan default tidak error.
+        types = []
+        for val in grp["TYPE_CAR"].tolist():
+            norm = str(val).strip()
+            if not norm:
+                continue
+            if norm.lower() in {"nan", "none", "null", "<na>"}:
+                continue
+            types.append(norm)
+
         if not types:
             continue
+
         # Pakai nilai paling sering sebagai default auto-fill TYPE_CAR.
-        hull_to_type[hull] = pd.Series(types).mode().iloc[0]
+        counts = pd.Series(types).value_counts()
+        if counts.empty:
+            continue
+        hull_to_type[hull] = str(counts.index[0])
 
     return hull_options, hull_to_type
 
