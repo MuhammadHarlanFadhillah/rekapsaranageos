@@ -130,6 +130,24 @@ def apply_custom_theme() -> None:
                 font-weight: 600;
             }
 
+            [data-testid="stWidgetLabel"] p {
+                color: #dce9f8 !important;
+                font-weight: 600;
+            }
+
+            .stCaption {
+                color: #a8bdd7 !important;
+            }
+
+            [data-testid="stNumberInput"] input,
+            [data-testid="stTextInput"] input,
+            [data-testid="stTextArea"] textarea,
+            [data-testid="stDateInput"] input,
+            [data-testid="stTimeInput"] input,
+            [data-testid="stSelectbox"] div[data-baseweb="select"] > div {
+                color: #e8f0fb !important;
+            }
+
             [data-testid="stDataFrame"] {
                 border: 1px solid var(--border);
                 border-radius: 12px;
