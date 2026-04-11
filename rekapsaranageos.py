@@ -326,6 +326,32 @@ def validate_required_text_values(data: dict) -> list[str]:
     return missing
 
 
+def get_add_form_defaults() -> dict:
+    now_time = datetime.now().time().replace(second=0, microsecond=0)
+    return {
+        "add_no_hull": "",
+        "add_type_car": "",
+        "add_driver": "",
+        "add_from": "",
+        "add_destination": "",
+        "add_activities": "",
+        "add_date_dep": datetime.today().date(),
+        "add_time_dep": now_time,
+        "add_date_arr": datetime.today().date(),
+        "add_time_arr": now_time,
+        "add_dist_start": 0.0,
+        "add_dist_finish": 0.0,
+    }
+
+
+def apply_add_form_reset_if_needed() -> None:
+    if st.session_state.get("reset_add_form_pending"):
+        for k, v in get_add_form_defaults().items():
+            st.session_state[k] = v
+        st.session_state["type_auto_from_hull"] = ""
+        st.session_state["reset_add_form_pending"] = False
+
+
 def build_styled_excel(df: pd.DataFrame, sheet_name: str) -> bytes:
     """Create a styled Excel file similar to the spreadsheet layout."""
     export_df = df.copy()
@@ -530,6 +556,7 @@ if menu == "Tambah Data":
     st.markdown('<h3 class="section-title">Tambah Data</h3>', unsafe_allow_html=True)
     st.subheader(f"Input Data Baru - {selected_sheet}")
     next_no = get_next_no(df_current)
+    apply_add_form_reset_if_needed()
     try:
         hull_options, hull_to_type = get_hull_reference_cached(conn, target_spreadsheet.strip(), sheet_names)
     except APIError as exc:
@@ -545,20 +572,7 @@ if menu == "Tambah Data":
         st.session_state.pop("hull_ref_cache", None)
         st.rerun()
 
-    add_state_defaults = {
-        "add_no_hull": "",
-        "add_type_car": "",
-        "add_driver": "",
-        "add_from": "",
-        "add_destination": "",
-        "add_activities": "",
-        "add_date_dep": datetime.today().date(),
-        "add_time_dep": datetime.now().time().replace(second=0, microsecond=0),
-        "add_date_arr": datetime.today().date(),
-        "add_time_arr": datetime.now().time().replace(second=0, microsecond=0),
-        "add_dist_start": 0.0,
-        "add_dist_finish": 0.0,
-    }
+    add_state_defaults = get_add_form_defaults()
     for k, v in add_state_defaults.items():
         if k not in st.session_state:
             st.session_state[k] = v
@@ -680,18 +694,8 @@ if menu == "Tambah Data":
             conn.update(spreadsheet=target_spreadsheet.strip(), worksheet=selected_sheet, data=updated_df)
 
             st.success("Data berhasil di-push ke Google Sheets.")
-
-            st.session_state["add_no_hull"] = ""
-            st.session_state["add_type_car"] = ""
-            st.session_state["type_auto_from_hull"] = ""
-            st.session_state["add_driver"] = ""
-            st.session_state["add_from"] = ""
-            st.session_state["add_destination"] = ""
-            st.session_state["add_activities"] = ""
-            st.session_state["add_dist_start"] = 0.0
-            st.session_state["add_dist_finish"] = 0.0
-
             st.cache_data.clear()
+            st.session_state["reset_add_form_pending"] = True
             st.rerun()
 
 if menu == "Edit Data":
